@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" 
+	xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+	<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+	<!-- <script th:src="@{/login.css}"></script> -->
+</head>
+<body>
+	<div class="container">
+	  <div class="row">
+	
+		<div class="col-sm-4"></div>
+	    <div class="main col-sm-4">
+	    	
+	  	
+	      <h3>Please Log In, or <a th:href="@{/register}">Sign Up</a></h3>
+	      <div class="row">
+	        <div class="col-xs-6 col-sm-6 col-md-6">
+	          <a href="#" class="btn btn-lg btn-primary btn-block">Facebook</a>
+	        </div>
+	        <div class="col-xs-6 col-sm-6 col-md-6">
+	          <a href="#" class="btn btn-lg btn-info btn-block">Google</a>
+	        </div>
+	      </div>
+	      <div class="login-or">
+	        <hr class="hr-or">
+	      </div>
+		 	<div th:if="${param.error != null}" class="alert alert-danger">
+				Username or password incorrect !!!
+			</div>
+			<div th:if="${param.logout != null}" class="alert alert-success">
+				You have been logged out successful.
+			</div>
+			<div th:if="${param.register_successful != null}" class="alert alert-success">
+				You have been successful registered.
+			</div>
+	      <form role="form" th:action="@{/api/login}" id="formSubmit" method="POST">
+	        <div class="form-group">
+	          <label for="inputUsernameEmail">Username</label>
+	          <input type="text" class="form-control" id="inputUsernameEmail" name='username' required>
+	        </div>
+	        <div class="form-group">
+	          <a class="pull-right" href="#">Forgot password?</a>
+	          <label for="inputPassword">Password</label>
+	          <input type="password" class="form-control" id="inputPassword" name='password' required>
+	        </div>
+	        <div class="checkbox pull-right">
+	          <label>
+	            <input type="checkbox">
+	            Remember me </label>
+	        </div>
+	        <button type="submit" id="btnLogin" class="btn btn btn-primary">
+	          Log In
+	        </button>
+	      </form>
+	    
+	    </div>
+	    
+	  </div>
+	</div>
+	
+	<script>
+	$('#btnLogin').click(function (e) {
+		e.preventDefault();
+	    var data = {};
+	    var formData = $('#formSubmit').serializeArray();
+	    $.each(formData, function (i, v) {
+	        data[""+v.name+""] = v.value;
+	    });
+	    login(data);
+	});
+	
+	function login(data) {
+        $.ajax({
+            url: '/api/login',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            headers: {
+                Authorization: 'Bearer ' + window.localStorage.getItem("Authorization")
+            },
+            success: function (result) {
+            	localStorage.setItem("Authorization", result.token);
+            	alert("Login success");
+            	getProfile();
+            },
+            error: function (error) {
+            	window.location.href = "/login?error";
+            }
+        });
+    }
+	
+	function getProfile() {
+        $.ajax({
+            url: '/api/profile',
+            type: 'GET',
+            headers: {"Authorization": "Bearer " + window.localStorage.getItem("Authorization")},
+            dataType: 'json',
+            success: function (result) {
+            	alert("Welcome " + result.fullName)
+            	console.log(result)
+            	window.location.href = "/profile";
+            },
+            error: function (error) {
+            	window.location.href = "/login?error";
+            }
+        });
+    }
+	</script>
+</body>
+</html>
